@@ -8,8 +8,6 @@ sudo docker build -t $CONTAINER_NAME -f $DOCKERFILE .
 
 sudo docker run -it --rm \
     -d \
-    -p 2222:22 \
-    -v $(pwd):/app \
-    -w /app \
+    -p 7776:22 \
     --name $CONTAINER_NAME \
     $CONTAINER_NAME

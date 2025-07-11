@@ -4,6 +4,10 @@ FROM ubuntu:latest
 # Set environment variables to avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Expose SSH port
+# (todo): Expose a port for remote GDB, probably 7777
+EXPOSE 22
+
 # Update the package list
 RUN apt-get update
 
@@ -21,14 +25,13 @@ RUN apt-get install -y --no-install-recommends \
 # Create a directory for the SSH daemon to run
 RUN mkdir /var/run/sshd
 
-# set the root password
-RUN echo 'root:localpwd' | chpasswd
-
-# Allow root login via SSH (optional, for development purposes)
-RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-
-# Expose SSH port
-EXPOSE 22
+# Setup SSH
+COPY auth/id_ed25519.pub /tmp/id_ed25519.pub
+COPY deps/sshd_config /etc/ssh/sshd_config
+RUN mkdir -p /root/.ssh && \
+    touch /root/.ssh/authorized_keys && \
+    cat /tmp/id_ed25519.pub >> /root/.ssh/authorized_keys && \
+    rm /tmp/id_ed25519.pub
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
