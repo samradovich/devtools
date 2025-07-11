@@ -1,0 +1,39 @@
+# Use the official Ubuntu base image
+FROM ubuntu:latest
+
+# Set environment variables to avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update the package list
+RUN apt-get update
+
+# Install essential development tools and SSH server
+RUN apt-get install -y --no-install-recommends \
+    build-essential \
+    cmake \
+    git \
+    vim \
+    gdb \
+    openssh-server \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create a directory for the SSH daemon to run
+RUN mkdir /var/run/sshd
+
+# set the root password
+RUN echo 'root:localpwd' | chpasswd
+
+# Allow root login via SSH (optional, for development purposes)
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# Expose SSH port
+EXPOSE 22
+
+# Set the working directory inside the container
+WORKDIR /usr/src/app
+
+# Start the SSH service
+CMD ["/usr/sbin/sshd", "-D"]
+
+# Note: You can add additional RUN commands to install other dependencies
