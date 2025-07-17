@@ -19,9 +19,35 @@ RUN apt-get install -y --no-install-recommends \
     vim \
     gdb \
     curl \
+    wget \
     openssh-server \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# Install ClickHouse-specific dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    ccache \
+    python3 \
+    ninja-build \
+    nasm \
+    yasm \
+    gawk \
+    lsb-release \
+    wget \
+    software-properties-common \
+    gnupg \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install clang
+RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+ENV CC=clang-19
+ENV CXX=clang++-19
+
+# Install rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Create a directory for the SSH daemon to run
 RUN mkdir /var/run/sshd
@@ -36,6 +62,9 @@ RUN mkdir -p /root/.ssh && \
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
+
+# Alacritty terminfo
+RUN curl -sSL https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info | tic -x -
 
 # Start the SSH service
 CMD ["/usr/sbin/sshd", "-D"]
