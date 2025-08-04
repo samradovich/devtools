@@ -42,12 +42,19 @@ RUN apt-get update && \
 
 # Install clang
 RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
-ENV CC=clang-19
-ENV CXX=clang++-19
+RUN export CC=clang-19
+RUN export CXX=clang++-19
+
+RUN echo 'export PATH=/usr/lib/llvm-19/bin:$PATH' >> ~/.bashrc
+RUN source ~/.bashrc
 
 # Install rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN rustup toolchain install nightly-2025-07-07
+RUN rustup default nightly-2025-07-07
+RUN rustup component add rust-src
 
 # Create a directory for the SSH daemon to run
 RUN mkdir /var/run/sshd
