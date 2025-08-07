@@ -1,5 +1,6 @@
 # Use the official Ubuntu base image
 FROM ubuntu:latest
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Set environment variables to avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -41,12 +42,14 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install clang
-RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+# RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+RUN wget https://apt.llvm.org/llvm.sh
+RUN chmod +x llvm.sh
+RUN ./llvm.sh 19
 RUN export CC=clang-19
 RUN export CXX=clang++-19
 
 RUN echo 'export PATH=/usr/lib/llvm-19/bin:$PATH' >> ~/.bashrc
-RUN source ~/.bashrc
 
 # Install rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -70,7 +73,10 @@ RUN mkdir -p /root/.ssh && \
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Alacritty terminfo
+# Export executables for testing
+RUN echo 'export PATH="/usr/src/ClickHouse/build/programs:$PATH"' >> ~/.bashrc
+
+# Alacritty terminfo (just for alacritty users)
 RUN curl -sSL https://raw.githubusercontent.com/alacritty/alacritty/master/extra/alacritty.info | tic -x -
 
 # Start the SSH service
